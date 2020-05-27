@@ -30,45 +30,91 @@ async function retrieveEstateData(url) {
     const $ = cheerio.load(response.data, {decodeEntities: true});
     $('script').remove();
     $('styles').remove();
-
-    const body = $.html();
-    const address = $('.OfferHeader__address').text();
-    const fullPrice = $('.OfferBaseInfo__price .Price .price').text();
-    const squarePrice = $('.OfferBaseInfo__text-info').text();
-    const stations = [];
-    $('.OfferHeaderLocation .MetroWithTime').each((i, node) => {
-      stations.push($(node).text());
-    });
-    const sellInfo = $('.OfferDealDescription__sell-info').text();
-    const techInfo = [];
-    $('.OfferTechDescription__list li').each((i, node) => {
-      techInfo.push($(node).text());
-    });
-    const description = $('.OfferTextDescription__text').text();
-    const features = [];
     $('.BuildingInfo__features-list li .BuildingInfoFeature__by-yandex-data').remove();
-    $('.BuildingInfo__features-list li').each((i, node) => {
-      features.push($(node).text());
-    });
-    const images = [];
-    $('.GalleryThumbsThumb').each((i, node) => {
-      const imgUrl = $(node).find('img').attr('src');
-      const fullUrl = `https:${imgUrl.replace('minicard', 'large')}`;
-      images.push(fullUrl);
+    const config = {
+      address: {
+        selector: '.OfferHeader__address',
+        getValue: function (node) {
+          return $(node).text();
+        },
+      },
+      fullPrice: {
+        selector: '.OfferBaseInfo__price .Price .price',
+        getValue: function (node) {
+          const tempString = $(node).text().split(' ').join('');
+          return tempString.substring(0, tempString.length - 1);
+        },
+      },
+      squarePrice: {
+        selector: '.OfferBaseInfo__text-info',
+        getValue: function (node) {
+          const tempString = $(node).text().split(' ').join('');
+          return tempString.substring(0, tempString.length - 1);
+        },
+      },
+      stations: {
+        selector: '.OfferHeaderLocation .MetroWithTime',
+        array: true,
+        getValue: function (node) {
+          return $(node).text() + '\n';
+        }
+      },
+      sellInfo: {
+        selector: '.OfferDealDescription__sell-info',
+        getValue: function (node) {
+          return $(node).text();
+        },
+      },
+      techInfo: {
+        selector: '.OfferTechDescription__list li',
+        array: true,
+        getValue: function (node) {
+          return $(node).text() + '\n';
+        },
+      },
+      description: {
+        selector: '.OfferTextDescription__text',
+        getValue: function (node) {
+          return $(node).text();
+        }
+      },
+      features: {
+        selector: '.BuildingInfo__features-list li',
+        array: true,
+        getValue: function (node) {
+          return $(node).text() + '\n';
+        },
+      },
+      images: {
+        selector: '.GalleryThumbsThumb',
+        array: true,
+        getValue: function (node) {
+          const imgUrl = $(node).find('img').attr('src');
+          const fullUrl = `https:${imgUrl.replace('minicard', 'large')}`;
+          return fullUrl;
+        }
+      },
+    };
+
+    const result = {};
+
+    Object.entries(config).forEach(([itemName, itemConfig]) => {
+      const node = $(itemConfig.selector);
+      let parsedResult;
+
+      if (itemConfig.array) {
+        parsedResult = [];
+        $(itemConfig.selector).each((i, node) => {
+          parsedResult.push(itemConfig.getValue(node));
+        });
+        parsedResult = parsedResult.join('');
+      } else {
+        parsedResult = itemConfig.getValue(node);
+      }
+      result[itemName] = parsedResult.toString();
     });
 
-    return {
-      url,
-      address,
-      fullPrice,
-      squarePrice,
-      stations,
-      sellInfo,
-      techInfo,
-      description,
-      features,
-      images,
-    };
+    return result;
   } catch (e) {
     console.error(e);
   }
