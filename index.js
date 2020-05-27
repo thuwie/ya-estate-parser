@@ -10,7 +10,6 @@ const requestHandler = async (req, res) => {
   if (req.url === '/favicon.ico') return;
   const queryObject = url.parse(req.url, true).query;
   const data = await retrieveEstateData(queryObject.url);
-  res.setHeader('Content-Type', 'application/json');
   res.write(JSON.stringify(data));
   res.end();
 };
