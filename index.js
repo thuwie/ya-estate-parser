@@ -41,15 +41,16 @@ async function retrieveEstateData(url) {
       fullPrice: {
         selector: '.OfferBaseInfo__price .Price .price',
         getValue: function (node) {
-          const tempString = $(node).text().split(' ').join('');
-          return tempString.substring(0, tempString.length - 1);
+          const tempString = $(node).text().split(String.fromCharCode(160)).join('');
+          return tempString.substring(0, tempString.indexOf('₽') - 2)
+            .trimEnd();
         },
       },
       squarePrice: {
         selector: '.OfferBaseInfo__text-info',
         getValue: function (node) {
-          const tempString = $(node).text().split(' ').join('');
-          return tempString.substring(0, tempString.length - 1);
+          const tempString = $(node).text().split(String.fromCharCode(160)).join('');
+          return tempString.split(' ').join('').substring(0, tempString.indexOf('₽') - 1);
         },
       },
       stations: {
