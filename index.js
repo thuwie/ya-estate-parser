@@ -42,8 +42,7 @@ async function retrieveEstateData(url) {
         selector: '.OfferBaseInfo__price .Price .price',
         getValue: function (node) {
           const tempString = $(node).text().split(String.fromCharCode(160)).join('');
-          return tempString.substring(0, tempString.indexOf('₽') - 2)
-            .trimEnd();
+          return tempString.substring(0, tempString.indexOf('₽') - 1).trimEnd();
         },
       },
       squarePrice: {
@@ -91,7 +90,7 @@ async function retrieveEstateData(url) {
         array: true,
         getValue: function (node) {
           const imgUrl = $(node).find('img').attr('src');
-          const fullUrl = `https:${imgUrl.replace('minicard', 'large')}`;
+          const fullUrl = `https:${imgUrl.replace('minicard', 'large')} \n`;
           return fullUrl;
         }
       },
